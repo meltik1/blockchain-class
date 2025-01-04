@@ -1,4 +1,4 @@
-package blockchain
+package genesis
 
 import (
 	"encoding/json"

@@ -69,7 +69,9 @@ func run() error {
 		return fmt.Errorf("error while loading private key %w", err)
 	}
 
-	hashData2 := crypto.Keccak256(data2)
+	salt := []byte(fmt.Sprintf("\x19 helo %d ", data2))
+
+	hashData2 := crypto.Keccak256(salt, data2)
 	signature2, err := crypto.Sign(hashData2, privateKey)
 	if err != nil {
 		return fmt.Errorf("error while signing: %w", err)
@@ -79,7 +81,7 @@ func run() error {
 	fmt.Println(hexutil.Encode(signature2))
 
 	// detecting fraud
-	pub2, err := crypto.SigToPub(hashData2, signature)
+	pub2, err := crypto.SigToPub(hashData2, signature2)
 	if err != nil {
 		return err
 	}

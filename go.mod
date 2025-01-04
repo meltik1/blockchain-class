@@ -3,6 +3,7 @@ module github.com/ardanlabs/blockchain
 go 1.18
 
 require (
+	emperror.dev/errors v0.8.1
 	github.com/ardanlabs/conf/v3 v3.1.6
 	github.com/dimfeld/httptreemux/v5 v5.5.0
 	github.com/ethereum/go-ethereum v1.12.0
@@ -21,6 +22,7 @@ require (
 	github.com/holiman/uint256 v1.2.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
