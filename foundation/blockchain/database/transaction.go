@@ -11,21 +11,20 @@ import (
 	"emperror.dev/errors"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/ardanlabs/blockchain/foundation/blockchain"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/signature"
 )
 
 type Tx struct {
-	FromID  blockchain.AccountID `json:"from_id"`
-	ToID    blockchain.AccountID `json:"to_id"`
-	Value   uint64               `json:"value"`
-	Tip     uint64               `json:"tip"`
-	ChainId uint16               `json:"chain_id"`
-	Data    []byte               `json:"data"`
-	Nonce   uint64               `json:"nonce"` // Сколько транзакций уже соверщил отправитель
+	FromID  AccountID `json:"from_id"`
+	ToID    AccountID `json:"to_id"`
+	Value   uint64    `json:"value"`
+	Tip     uint64    `json:"tip"`
+	ChainId uint16    `json:"chain_id"`
+	Data    []byte    `json:"data"`
+	Nonce   uint64    `json:"nonce"` // Сколько транзакций уже соверщил отправитель
 }
 
-func NewTx(fromID blockchain.AccountID, toID blockchain.AccountID, value uint64, tip uint64, chainId uint16, data []byte, nonce uint64) (Tx, error) {
+func NewTx(fromID AccountID, toID AccountID, value uint64, tip uint64, chainId uint16, data []byte, nonce uint64) (Tx, error) {
 	if !fromID.IsValid() {
 		return Tx{}, errors.New("Invalid fromID account")
 	}
@@ -121,7 +120,7 @@ func (tx SignedTx) IsValid() bool {
 	return true
 }
 
-func (tx SignedTx) fromSignToAddress() (blockchain.AccountID, error) {
+func (tx SignedTx) fromSignToAddress() (AccountID, error) {
 	signature := signature.FromVRSToSignature(tx.V, tx.R, tx.S)
 
 	hashedMassage, err := stamp(tx.Tx)
@@ -134,7 +133,7 @@ func (tx SignedTx) fromSignToAddress() (blockchain.AccountID, error) {
 		return "", errors.Wrap(err, "error while converting sign to public key")
 	}
 
-	return blockchain.AccountID(crypto.PubkeyToAddress(*pub).String()), nil
+	return AccountID(crypto.PubkeyToAddress(*pub).String()), nil
 }
 
 // SignatureString returns the signature as a string.

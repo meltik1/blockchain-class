@@ -11,9 +11,9 @@ type Genesis struct {
 	ChainID       uint16           `json:"chain_id"`
 	TransPerBlock uint16           `json:"trans_per_block"`
 	Difficulty    uint16           `json:"difficulty"`
-	miningReward  int64            `json:"mining_reward"`
-	gasPrice      int64            `json:"gas_price"`
-	balances      map[string]int64 `json:"balances"`
+	MiningReward  int64            `json:"mining_reward"`
+	GasPrice      int64            `json:"gas_price"`
+	Balances      map[string]int64 `json:"balances"`
 }
 
 func Load() (Genesis, error) {

@@ -1,4 +1,4 @@
-package blockchain
+package database
 
 import (
 	"errors"
@@ -50,4 +50,18 @@ func isHex(a AccountID) bool {
 // isHexCharacter returns bool of c being a valid hexadecimal.
 func isHexCharacter(c byte) bool {
 	return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F')
+}
+
+type Account struct {
+	AccountID AccountID
+	Nonce     uint64
+	Balance   int64
+}
+
+// newAccount constructs a new account value for use.
+func newAccount(accountID AccountID, balance int64) Account {
+	return Account{
+		AccountID: accountID,
+		Balance:   balance,
+	}
 }
