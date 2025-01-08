@@ -62,7 +62,8 @@ func run(log *zap.SugaredLogger) error {
 			PrivateHost     string        `conf:"default:0.0.0.0:9080"`
 		}
 		State struct {
-			Beneficiary string `conf:"default:miner1"` // Change to POA to run Proof of Authority
+			Beneficiary     string `conf:"default:miner1"` // Change to POA to run Proof of Authority
+			MemPoolStrategy string `conf:"default:tip"`
 		}
 		NameService struct {
 			Folder string `conf:"default:zblock/accounts/"`
@@ -138,9 +139,10 @@ func run(log *zap.SugaredLogger) error {
 	// The state value represents the blockchain node and manages the blockchain
 	// database and provides an API for application support.
 	state, err := state.NewState(state.Config{
-		BeneficiaryID: BeneficiaryID,
-		Genesis:       genesisN,
-		EvHandler:     ev,
+		BeneficiaryID:   BeneficiaryID,
+		Genesis:         genesisN,
+		EvHandler:       ev,
+		MemPoolStrategy: cfg.State.MemPoolStrategy,
 	})
 	if err != nil {
 		return err

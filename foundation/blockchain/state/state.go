@@ -7,15 +7,17 @@ import (
 
 	"github.com/ardanlabs/blockchain/foundation/blockchain/database"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/genesis"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/mempool"
 )
 
 // Config represents the configuration required to start
 // the blockchain node.
 
 type Config struct {
-	BeneficiaryID database.AccountID // Аккаунт, который получает вохзнограждеение за майнинг или ГАЗ
-	Genesis       genesis.Genesis
-	EvHandler     EventHandler
+	BeneficiaryID   database.AccountID // Аккаунт, который получает вохзнограждеение за майнинг или ГАЗ
+	Genesis         genesis.Genesis
+	EvHandler       EventHandler
+	MemPoolStrategy string
 }
 
 // EventHandler defines a function that is called when events
@@ -32,6 +34,7 @@ type State struct {
 
 	Genesis genesis.Genesis
 	Db      *database.Database
+	MemPool *mempool.MemPool
 }
 
 func NewState(cfg Config) (*State, error) {
@@ -51,11 +54,17 @@ func NewState(cfg Config) (*State, error) {
 		return nil, errors.Wrap(err, "Error while creating new database")
 	}
 
+	pool, err := mempool.NewWithStrategy(cfg.MemPoolStrategy)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error while creating new mempool")
+	}
+
 	return &State{
 		BeneficiaryID: cfg.BeneficiaryID,
 		EvHandler:     ev,
 		Genesis:       cfg.Genesis,
 		Db:            db,
+		MemPool:       pool,
 	}, nil
 }
 

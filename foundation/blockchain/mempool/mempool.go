@@ -18,10 +18,10 @@ type MemPool struct {
 }
 
 func NewMemPool() (*MemPool, error) {
-	return NewStrategy(selector.StrategyTip)
+	return NewWithStrategy(selector.StrategyTip)
 }
 
-func NewStrategy(strategy string) (*MemPool, error) {
+func NewWithStrategy(strategy string) (*MemPool, error) {
 	selectFn, err := selector.Retrieve(strategy)
 	if err != nil {
 		return nil, err
