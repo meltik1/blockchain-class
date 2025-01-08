@@ -73,3 +73,7 @@ func (s *State) Shutdown() error {
 
 	return nil
 }
+
+func (s *State) GetGenesis() genesis.Genesis {
+	return s.Genesis
+}
