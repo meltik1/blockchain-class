@@ -15,6 +15,8 @@ type Database struct {
 	evHandler func(v string, args ...interface{})
 }
 
+var NotFound = errors.New("Account not found")
+
 func NewDatabase(genesis genesis.Genesis, ev func(v string, args ...interface{})) (*Database, error) {
 	db := Database{
 		evHandler: ev,
@@ -40,7 +42,19 @@ func (db *Database) Remove(id AccountID) {
 	defer db.mx.Unlock()
 
 	delete(db.accounts, id)
+}
 
+func (db *Database) All() []Account {
+	var accounts = make([]Account, 0, len(db.accounts))
+
+	db.mx.RLock()
+	defer db.mx.RUnlock()
+
+	for _, account := range db.accounts {
+		accounts = append(accounts, account)
+	}
+
+	return accounts
 }
 
 func (db *Database) Query(id AccountID) (Account, error) {
@@ -49,7 +63,7 @@ func (db *Database) Query(id AccountID) (Account, error) {
 
 	account, exists := db.accounts[id]
 	if !exists {
-		return Account{}, errors.New("Account not found")
+		return Account{}, NotFound
 	}
 
 	return account, nil

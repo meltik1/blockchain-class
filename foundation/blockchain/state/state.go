@@ -34,7 +34,7 @@ type State struct {
 
 	Genesis genesis.Genesis
 	Db      *database.Database
-	MemPool *mempool.MemPool
+	memPool *mempool.MemPool
 }
 
 func NewState(cfg Config) (*State, error) {
@@ -64,7 +64,7 @@ func NewState(cfg Config) (*State, error) {
 		EvHandler:     ev,
 		Genesis:       cfg.Genesis,
 		Db:            db,
-		MemPool:       pool,
+		memPool:       pool,
 	}, nil
 }
 
@@ -76,4 +76,14 @@ func (s *State) Shutdown() error {
 
 func (s *State) GetGenesis() genesis.Genesis {
 	return s.Genesis
+}
+
+// MempoolLength returns the current length of the mempool.
+func (s *State) MempoolLength() int64 {
+	return s.memPool.Count()
+}
+
+// Mempool returns a copy of the mempool.
+func (s *State) Mempool() []database.BlockTx {
+	return s.memPool.PickBest()
 }
