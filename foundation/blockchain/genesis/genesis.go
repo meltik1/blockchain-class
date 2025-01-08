@@ -24,7 +24,7 @@ func Load() (Genesis, error) {
 	}
 
 	var g Genesis
-	err = json.Unmarshal(open, g)
+	err = json.Unmarshal(open, &g)
 	if err != nil {
 		return Genesis{}, err
 	}

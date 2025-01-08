@@ -1,7 +1,10 @@
 package database
 
 import (
+	"crypto/ecdsa"
 	"errors"
+
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 type AccountID string
@@ -30,6 +33,11 @@ func (a AccountID) IsValid() bool {
 // has0xPrefix validates the account starts with a 0x.
 func has0xPrefix(a AccountID) bool {
 	return len(a) >= 2 && a[0] == '0' && (a[1] == 'x' || a[1] == 'X')
+}
+
+// PublicKeyToAccountID converts the public key to an account value.
+func PublicKeyToAccountID(pk ecdsa.PublicKey) (AccountID, error) {
+	return ToAccountID(crypto.PubkeyToAddress(pk).String())
 }
 
 // isHex validates whether each byte is valid hexadecimal string.

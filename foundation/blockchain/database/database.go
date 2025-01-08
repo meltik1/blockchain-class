@@ -8,16 +8,18 @@ import (
 	"github.com/ardanlabs/blockchain/foundation/blockchain/genesis"
 )
 
-type Datatabase struct {
-	mx       sync.RWMutex
-	genesis  genesis.Genesis
-	accounts map[AccountID]Account
+type Database struct {
+	mx        sync.RWMutex
+	genesis   genesis.Genesis
+	accounts  map[AccountID]Account
+	evHandler func(v string, args ...interface{})
 }
 
-func NewDatatabase(mx sync.RWMutex, genesis genesis.Genesis, accounts map[AccountID]int64) (*Datatabase, error) {
-	db := Datatabase{mx: mx,
-		genesis:  genesis,
-		accounts: make(map[AccountID]Account),
+func NewDatabase(genesis genesis.Genesis, ev func(v string, args ...interface{})) (*Database, error) {
+	db := Database{
+		evHandler: ev,
+		genesis:   genesis,
+		accounts:  make(map[AccountID]Account),
 	}
 
 	for accountIString, balances := range genesis.Balances {
@@ -27,12 +29,13 @@ func NewDatatabase(mx sync.RWMutex, genesis genesis.Genesis, accounts map[Accoun
 		}
 
 		db.accounts[accountId] = newAccount(accountId, balances)
+		ev("Account : %s, Balance : %d", accountIString, balances)
 	}
 
 	return &db, nil
 }
 
-func (db *Datatabase) Remove(id AccountID) {
+func (db *Database) Remove(id AccountID) {
 	db.mx.Lock()
 	defer db.mx.Unlock()
 
@@ -40,7 +43,7 @@ func (db *Datatabase) Remove(id AccountID) {
 
 }
 
-func (db *Datatabase) Query(id AccountID) (Account, error) {
+func (db *Database) Query(id AccountID) (Account, error) {
 	db.mx.RLock()
 	defer db.mx.RUnlock()
 
