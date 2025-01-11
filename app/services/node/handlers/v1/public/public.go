@@ -3,15 +3,19 @@ package public
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"net/http"
 
+	"emperror.dev/errors"
 	"go.uber.org/zap"
 
 	"github.com/ardanlabs/blockchain/foundation/blockchain/database"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/web"
 )
+
+const FIXED_GAS_PRICE = 1
+const FIXED_GAS_AMOUNT = 1
 
 // Handlers manages the set of bar ledger endpoints.
 type Handlers struct {
@@ -94,4 +98,26 @@ func (h Handlers) MemPool(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 
 	return web.Respond(ctx, w, mempool, http.StatusOK)
+}
+
+func (h Handlers) SubmitWalletTransaction(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	// Decode the JSON in the post call into a Signed transaction.
+	var signedTx database.SignedTx
+	if err := web.Decode(r, &signedTx); err != nil {
+		return fmt.Errorf("unable to decode payload: %w", err)
+	}
+
+	err := h.State.SubmitTx(signedTx)
+	if err != nil {
+		h.Log.Error(errors.Wrap(err, "h.State.SubmitTx"))
+		return web.Respond(ctx, w, nil, http.StatusInternalServerError)
+	}
+
+	resp := struct {
+		Status string `json:"status"`
+	}{
+		Status: "transactions added to mempool",
+	}
+
+	return web.Respond(ctx, w, resp, http.StatusOK)
 }

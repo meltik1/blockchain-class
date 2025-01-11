@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -90,45 +91,45 @@ type SignedTx struct {
 	S *big.Int
 }
 
-func (tx SignedTx) IsValid() bool {
+func (tx SignedTx) IsValid() error {
 	if !tx.FromID.IsValid() {
-		return false
+		return errors.New("Invalid fromID account")
 	}
 
 	if !tx.ToID.IsValid() {
-		return false
+		return errors.New("Invalid toID account")
 	}
 
 	if tx.Value == 0 {
-		return false
+		return errors.New("Value must be greater than 0")
 	}
 
 	if tx.FromID == tx.ToID {
-		return false
+		return errors.New("FromID and ToID must be different")
 	}
 
-	if signature.ValidateSignatureValues(tx.V, tx.R, tx.S) {
-		return false
+	if !signature.ValidateSignatureValues(tx.V, tx.R, tx.S) {
+		return errors.New("Invalid signature values")
 	}
 
 	address, err := tx.fromSignToAddress()
 
 	if !(address == tx.FromID) || err != nil {
-		return false
+		return errors.Wrap(err, "Invalid signature")
 	}
 
-	return true
+	return nil
 }
 
 func (tx SignedTx) fromSignToAddress() (AccountID, error) {
-	signature := signature.FromVRSToSignature(tx.V, tx.R, tx.S)
+	signat := signature.ToSignatureBytes(tx.V, tx.R, tx.S)
 
 	hashedMassage, err := stamp(tx.Tx)
 	if err != nil {
 		return "", errors.Wrap(err, "error while hashing message")
 	}
 
-	pub, err := crypto.SigToPub(signature, hashedMassage)
+	pub, err := crypto.SigToPub(hashedMassage, signat)
 	if err != nil {
 		return "", errors.Wrap(err, "error while converting sign to public key")
 	}
@@ -156,10 +157,10 @@ type BlockTx struct {
 }
 
 // NewBlockTx creates a new BlockTx value.
-func NewBlockTx(tx SignedTx, timeStamp, gasPrice, gasUnits uint64) BlockTx {
+func NewBlockTx(tx SignedTx, gasPrice, gasUnits uint64) BlockTx {
 	return BlockTx{
 		SignedTx:  tx,
-		TimeStamp: timeStamp,
+		TimeStamp: uint64(time.Now().UTC().UnixMilli()),
 		GasPrice:  gasPrice,
 		GasUnits:  gasUnits,
 	}

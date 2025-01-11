@@ -12,7 +12,7 @@ type Genesis struct {
 	TransPerBlock uint16           `json:"trans_per_block"`
 	Difficulty    uint16           `json:"difficulty"`
 	MiningReward  int64            `json:"mining_reward"`
-	GasPrice      int64            `json:"gas_price"`
+	GasPrice      uint64           `json:"gas_price"`
 	Balances      map[string]int64 `json:"balances"`
 }
 

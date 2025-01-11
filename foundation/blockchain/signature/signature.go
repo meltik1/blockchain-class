@@ -9,26 +9,26 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-const ArdanID = 27
+const ArdanID = 29
 
 // ZeroHash represents a hash code of zeros.
 const ZeroHash string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 type Signature []byte
 
-func (s Signature) ToVrs() (*big.Int, *big.Int, *big.Int) {
-	R := new(big.Int).SetBytes(s[0:32])
-	S := new(big.Int).SetBytes(s[32:64])
-	V := new(big.Int).SetBytes([]byte{s[64] + ArdanID})
+func (s Signature) ToVrs() (V *big.Int, R *big.Int, S *big.Int) {
+	R = big.NewInt(0).SetBytes(s[:32])
+	S = big.NewInt(0).SetBytes(s[32:64])
+	V = big.NewInt(0).SetBytes([]byte{s[64] + ArdanID})
 
-	return R, S, V
+	return V, R, S
 }
 
 func FromVRSToSignature(v, r, s *big.Int) Signature {
 	signatureBytes := make([]byte, 64)
 
 	signatureBytes = append(r.Bytes(), s.Bytes()...)
-	signatureBytes = append(signatureBytes, byte(v.Int64()-ArdanID))
+	signatureBytes = append(signatureBytes, byte(v.Uint64()-ArdanID))
 
 	return signatureBytes
 }
@@ -77,7 +77,7 @@ func Hash(value any) string {
 }
 
 func ValidateSignatureValues(v, r, s *big.Int) bool {
-	if !(v.Int64() == ArdanID || v.Int64() == ArdanID+1) {
+	if !(v.Uint64() == ArdanID || v.Uint64() == ArdanID+1) {
 		return false
 	}
 

@@ -87,3 +87,24 @@ func (s *State) MempoolLength() int64 {
 func (s *State) Mempool() []database.BlockTx {
 	return s.memPool.PickBest()
 }
+
+// Accepting transaction
+func (s *State) SubmitTx(tx database.SignedTx) error {
+	// CORE NOTE: It's up to the wallet to make sure the account has a proper
+	// balance and this transaction has a proper nonce. Fees will be taken if
+	// this transaction is mined into a block it doesn't have enough money to
+	// pay or the nonce isn't the next expected nonce for the account.
+
+	// Check the signed transaction has a proper signature, the from matches the
+	// signature, and the from and to fields are properly formatted.
+	if err := tx.IsValid(); err != nil {
+		return errors.Wrap(err, "Invalid transaction")
+	}
+
+	const oneUnitOfGas = 1
+	blockTx := database.NewBlockTx(tx, s.Genesis.GasPrice, oneUnitOfGas)
+	if err := s.memPool.Upsert(blockTx); err != nil {
+		return err
+	}
+	return nil
+}

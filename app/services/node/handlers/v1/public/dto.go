@@ -32,3 +32,7 @@ type txDTO struct {
 	GasUnits    uint64             `json:"gas_units"`
 	Sig         string             `json:"sig"`
 }
+
+type badRequest struct {
+	Err string `json:"error"`
+}
