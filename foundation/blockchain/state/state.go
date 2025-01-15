@@ -20,6 +20,16 @@ type Config struct {
 	MemPoolStrategy string
 }
 
+// Worker interface represents the behavior required to be implemented by any
+// package providing support for mining, peer updates, and transaction sharing.
+type Worker interface {
+	Shutdown()
+	Sync()
+	SignalStartMining()
+	SignalCancelMining()
+	SignalShareTx(blockTx database.BlockTx)
+}
+
 // EventHandler defines a function that is called when events
 // occur in the processing of persisting blocks
 // Мы ее будем юзать для логирования
@@ -35,6 +45,8 @@ type State struct {
 	Genesis genesis.Genesis
 	Db      *database.Database
 	memPool *mempool.MemPool
+
+	Worker Worker
 }
 
 func NewState(cfg Config) (*State, error) {
@@ -106,5 +118,18 @@ func (s *State) SubmitTx(tx database.SignedTx) error {
 	if err := s.memPool.Upsert(blockTx); err != nil {
 		return err
 	}
+
+	if s.MempoolLength() >= int64(s.Genesis.TransPerBlock) {
+		s.Worker.SignalStartMining()
+	}
+
 	return nil
+}
+
+func (s *State) GetStateRoot() string {
+	return s.Db.GetStateRoot()
+}
+
+func (s *State) GetLastBlock() database.Block {
+	return database.Block{}
 }

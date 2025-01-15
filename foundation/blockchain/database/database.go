@@ -6,6 +6,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/ardanlabs/blockchain/foundation/blockchain/genesis"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/signature"
 )
 
 type Database struct {
@@ -68,4 +69,8 @@ func (db *Database) Query(id AccountID) (Account, error) {
 
 	return account, nil
 
+}
+
+func (db *Database) GetStateRoot() string {
+	return signature.Hash(db.All())
 }
