@@ -32,62 +32,62 @@ var advancedTipSelect = func(m map[database.AccountID][]database.BlockTx, howMan
 // =============================================================================
 
 type advancedTips struct {
-	howMany   int
-	bestTip   uint64
-	bestPos   map[database.AccountID]int
-	groupTips map[database.AccountID][]uint64
-	groups    []database.AccountID
+	howMany                int
+	bestTip                uint64
+	bestTipsForAccount     map[database.AccountID]int
+	accountCummilativeTips map[database.AccountID][]uint64
+	accountsList           []database.AccountID
 }
 
-func newAdvancedTips(m map[database.AccountID][]database.BlockTx, howMany int) *advancedTips {
-	groupTips := map[database.AccountID][]uint64{}
-	groups := []database.AccountID{}
+func newAdvancedTips(accountsToTransactionsMap map[database.AccountID][]database.BlockTx, howMany int) *advancedTips {
+	accountCummilativeTips := map[database.AccountID][]uint64{}
+	accounts := []database.AccountID{}
 
-	for from := range m {
-		groupTips[from] = []uint64{0}
-		groups = append(groups, from)
+	for accountID := range accountsToTransactionsMap {
+		accountCummilativeTips[accountID] = []uint64{0}
+		accounts = append(accounts, accountID)
 	}
 
-	for from, group := range m {
-		for i, tx := range group {
-			if i > howMany {
+	for accountID, transactions := range accountsToTransactionsMap {
+		for cummilativeTipIndex, tx := range transactions {
+			if cummilativeTipIndex > howMany {
 				break
 			}
-			groupTips[from] = append(groupTips[from], tx.Tip+groupTips[from][i])
+			accountCummilativeTips[accountID] = append(accountCummilativeTips[accountID], tx.Tip+accountCummilativeTips[accountID][cummilativeTipIndex])
 		}
 	}
 
 	return &advancedTips{
-		howMany:   howMany,
-		groupTips: groupTips,
-		groups:    groups,
+		howMany:                howMany,
+		accountCummilativeTips: accountCummilativeTips,
+		accountsList:           accounts,
 	}
 }
 
-func (at *advancedTips) findBest() map[database.AccountID]int {
-	at.findBestTransactions(0, 0, at.howMany, at.bestPos, 0)
-	return at.bestPos
+func (advancedTip *advancedTips) findBest() map[database.AccountID]int {
+	advancedTip.findBestTransactions(0, 0, advancedTip.howMany, advancedTip.bestTipsForAccount, 0)
+	return advancedTip.bestTipsForAccount
 }
 
-func (at *advancedTips) findBestTransactions(groupID, pos int, left int, currPos map[database.AccountID]int, prevTip uint64) {
-	if prevTip > at.bestTip {
-		at.bestTip = prevTip
-		at.bestPos = currPos
+func (advancedTip *advancedTips) findBestTransactions(accountIndex, pos int, transactionsInBlock int, maxTipsForAccount map[database.AccountID]int, prevTip uint64) {
+	if prevTip > advancedTip.bestTip {
+		advancedTip.bestTip = prevTip
+		advancedTip.bestTipsForAccount = maxTipsForAccount
 	}
 
-	if groupID >= len(at.groups) {
+	if accountIndex >= len(advancedTip.accountsList) {
 		return
 	}
-	from := at.groups[groupID]
+	accountID := advancedTip.accountsList[accountIndex]
 
-	for pos, tip := range at.groupTips[from] {
-		if left-pos < 0 {
+	for tipIndex, cummilativeTip := range advancedTip.accountCummilativeTips[accountID] {
+		if transactionsInBlock-tipIndex < 0 {
 			break
 		}
 
-		newCurrPos := copyMap(currPos)
-		newCurrPos[from] = pos
-		at.findBestTransactions(groupID+1, pos, left-pos, newCurrPos, prevTip+tip)
+		newTipIndex := copyMap(maxTipsForAccount)
+		newTipIndex[accountID] = tipIndex
+		advancedTip.findBestTransactions(accountIndex+1, tipIndex, transactionsInBlock-tipIndex, newTipIndex, prevTip+cummilativeTip)
 	}
 }
 

@@ -97,6 +97,8 @@ func (w *Worker) mine() {
 		case <-w.cancelMining:
 			w.ev("worker: runMiningOperation: MINING: CANCEL: requested")
 		case <-ctx.Done():
+		case <-w.shutDown:
+			w.ev("worker: runMiningOperation: MINING: SHUTDOWN: requested")
 		}
 	}()
 
