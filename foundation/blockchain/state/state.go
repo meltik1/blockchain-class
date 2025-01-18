@@ -119,11 +119,18 @@ func (s *State) SubmitTx(tx database.SignedTx) error {
 		return err
 	}
 
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
+
 	if s.MempoolLength() >= int64(s.Genesis.TransPerBlock) {
 		s.Worker.SignalStartMining()
 	}
 
 	return nil
+}
+
+func (s *State) Cancel() {
+	s.Worker.SignalCancelMining()
 }
 
 func (s *State) GetStateRoot() string {

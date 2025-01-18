@@ -18,6 +18,7 @@ import (
 	"github.com/ardanlabs/blockchain/foundation/blockchain/database"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/genesis"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/worker"
 	"github.com/ardanlabs/blockchain/foundation/logger"
 )
 
@@ -148,6 +149,8 @@ func run(log *zap.SugaredLogger) error {
 		return err
 	}
 	defer state.Shutdown()
+
+	worker.Init(state, ev)
 
 	// =========================================================================
 	// Start Debug Service

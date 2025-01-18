@@ -20,9 +20,9 @@ var advancedTipSelect = func(m map[database.AccountID][]database.BlockTx, howMan
 	}
 
 	at := newAdvancedTips(m, howMany)
-	for from, num := range at.findBest() {
-		for i := 0; i < num; i++ {
-			final = append(final, m[from][i])
+	for accountID, transactionNumber := range at.findBest() {
+		for i := 0; i < transactionNumber; i++ {
+			final = append(final, m[accountID][i])
 		}
 	}
 
@@ -32,11 +32,11 @@ var advancedTipSelect = func(m map[database.AccountID][]database.BlockTx, howMan
 // =============================================================================
 
 type advancedTips struct {
-	howMany                int
-	bestTip                uint64
-	bestTipsForAccount     map[database.AccountID]int
-	accountCummilativeTips map[database.AccountID][]uint64
-	accountsList           []database.AccountID
+	howMany                     int
+	bestTip                     uint64
+	accountToTransactionsNumber map[database.AccountID]int
+	accountCummilativeTips      map[database.AccountID][]uint64
+	accountsList                []database.AccountID
 }
 
 func newAdvancedTips(accountsToTransactionsMap map[database.AccountID][]database.BlockTx, howMany int) *advancedTips {
@@ -65,14 +65,14 @@ func newAdvancedTips(accountsToTransactionsMap map[database.AccountID][]database
 }
 
 func (advancedTip *advancedTips) findBest() map[database.AccountID]int {
-	advancedTip.findBestTransactions(0, 0, advancedTip.howMany, advancedTip.bestTipsForAccount, 0)
-	return advancedTip.bestTipsForAccount
+	advancedTip.findBestTransactions(0, 0, advancedTip.howMany, advancedTip.accountToTransactionsNumber, 0)
+	return advancedTip.accountToTransactionsNumber
 }
 
-func (advancedTip *advancedTips) findBestTransactions(accountIndex, pos int, transactionsInBlock int, maxTipsForAccount map[database.AccountID]int, prevTip uint64) {
+func (advancedTip *advancedTips) findBestTransactions(accountIndex, pos int, transactionsInBlock int, accountTransactions map[database.AccountID]int, prevTip uint64) {
 	if prevTip > advancedTip.bestTip {
 		advancedTip.bestTip = prevTip
-		advancedTip.bestTipsForAccount = maxTipsForAccount
+		advancedTip.accountToTransactionsNumber = accountTransactions
 	}
 
 	if accountIndex >= len(advancedTip.accountsList) {
@@ -85,7 +85,7 @@ func (advancedTip *advancedTips) findBestTransactions(accountIndex, pos int, tra
 			break
 		}
 
-		newTipIndex := copyMap(maxTipsForAccount)
+		newTipIndex := copyMap(accountTransactions)
 		newTipIndex[accountID] = tipIndex
 		advancedTip.findBestTransactions(accountIndex+1, tipIndex, transactionsInBlock-tipIndex, newTipIndex, prevTip+cummilativeTip)
 	}

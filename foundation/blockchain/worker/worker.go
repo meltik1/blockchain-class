@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"emperror.dev/errors"
-
 	"github.com/ardanlabs/blockchain/foundation/blockchain/database"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 )
@@ -21,8 +19,8 @@ type Worker struct {
 
 func newWorker(s *state.State, handler state.EventHandler) *Worker {
 	return &Worker{
-		startMining:  make(chan bool, 1),
-		cancelMining: make(chan bool, 1),
+		startMining:  make(chan bool, 0),
+		cancelMining: make(chan bool, 0),
 		s:            s,
 		ev:           handler,
 	}
@@ -79,13 +77,24 @@ func (w *Worker) mine() {
 	wg.Add(2)
 
 	go func() {
-		defer wg.Done()
+		defer func() {
+			wg.Done()
+			cancel()
+		}()
 		block, err := database.POW(ctx, args)
+
 		if err != nil {
-			w.ev(errors.Wrap(err, "Error while mining").Error())
+			switch {
+			case ctx.Err() != nil:
+				w.ev("worker: runMiningOperation: MINING: CANCEL: requested")
+			default:
+				w.ev("worker: runMiningOperation: MINING: ERROR: %s", err.Error())
+			}
+			return
 		}
 
 		w.ev("!!!! We ve mined block: %s !!!", block.Hash())
+
 	}()
 
 	go func() {

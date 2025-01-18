@@ -121,3 +121,8 @@ func (h Handlers) SubmitWalletTransaction(ctx context.Context, w http.ResponseWr
 
 	return web.Respond(ctx, w, resp, http.StatusOK)
 }
+
+func (h Handlers) Cancel(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	h.State.Cancel()
+	return nil
+}
