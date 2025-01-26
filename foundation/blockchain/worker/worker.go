@@ -82,7 +82,6 @@ func (w *Worker) mine() {
 			cancel()
 		}()
 		block, err := database.POW(ctx, args)
-
 		if err != nil {
 			switch {
 			case ctx.Err() != nil:
@@ -95,6 +94,11 @@ func (w *Worker) mine() {
 
 		w.ev("!!!! We ve mined block: %s !!!", block.Hash())
 
+		err = w.s.ValidateBlock(&block)
+		if err != nil {
+			w.ev("We ve mined invalid block, error message: %s", err.Error())
+			return
+		}
 	}()
 
 	go func() {
@@ -112,6 +116,11 @@ func (w *Worker) mine() {
 	}()
 
 	wg.Wait()
+
+	if w.s.MempoolLength() > 0 {
+		w.ev("worker: runMiningOperation: MINING: More transactions in mempool")
+		w.SignalStartMining()
+	}
 }
 
 func (w *Worker) Shutdown() {

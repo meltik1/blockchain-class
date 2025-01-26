@@ -168,7 +168,7 @@ func (b *Block) performPOW(ctx context.Context, ev func(v string, args ...any)) 
 
 		// Hash the block and check if we have solved the puzzle.
 		hash := b.Hash()
-		if !isHashSolved(b.Header.Difficulty, hash) {
+		if !IsHashSolved(b.Header.Difficulty, hash) {
 			b.Header.Nonce++
 			continue
 		}
@@ -180,9 +180,9 @@ func (b *Block) performPOW(ctx context.Context, ev func(v string, args ...any)) 
 	}
 }
 
-// isHashSolved checks the hash to make sure it complies with
+// IsHashSolved checks the hash to make sure it complies with
 // the POW rules. We need to match a difficulty number of 0's.
-func isHashSolved(difficulty uint16, hash string) bool {
+func IsHashSolved(difficulty uint16, hash string) bool {
 	const match = "0x00000000000000000"
 
 	if len(hash) != 66 {
